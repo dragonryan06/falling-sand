@@ -12,32 +12,83 @@ def create_particle(particle): # creates a grid entry for the new particle
         particle.active = True
 
 def move_particle(particle):
-    down = [particle.pos[0],particle.pos[1]+1]
-    downright = [particle.pos[0]+1,particle.pos[1]+1]
-    downleft = [particle.pos[0]-1,particle.pos[1]+1]
-    right = [particle.pos[0]+1,particle.pos[1]]
-    left = [particle.pos[0]-1,particle.pos[1]]
-    if not str(down) in grid.keys():
+    neighbors = {
+        'down' : [particle.pos[0],particle.pos[1]+1],
+        'downright' : [particle.pos[0]+1,particle.pos[1]+1],
+        'downleft' : [particle.pos[0]-1,particle.pos[1]+1],
+        'right' : [particle.pos[0]+1,particle.pos[1]],
+        'left' : [particle.pos[0]-1,particle.pos[1]],
+        'up' : [particle.pos[0],particle.pos[1]-1],
+        'upright' : [particle.pos[0]+1,particle.pos[1]-1],
+        'upleft' : [particle.pos[0]-1,particle.pos[1]-1]}
+
+    if not str(neighbors['down']) in grid.keys() and particle_types[particle.type]['density'] > 0:
         del grid[str(particle.pos)]
-        grid[str(down)] = particle
-        particle.pos = down
-    elif not str(downright) in grid.keys():
+        grid[str(neighbors['down'])] = particle
+        particle.pos = neighbors['down']
+    elif str(neighbors['down']) in grid.keys() and particle_types[grid[str(neighbors['down'])].type]['density'] < particle_types[particle.type]['density']:
         del grid[str(particle.pos)]
-        grid[str(downright)] = particle
-        particle.pos = downright
-    elif not str(downleft) in grid.keys():
+        replacing_particle = grid[str(neighbors['down'])]
+        del grid[str(neighbors['down'])]
+        grid[str(particle.pos)] = replacing_particle
+        grid[str(neighbors['down'])] = particle
+        replacing_particle.pos = particle.pos
+        particle.pos = neighbors['down']
+
+    elif not str(neighbors['downright']) in grid.keys() and particle_types[particle.type]['density'] > 0:
         del grid[str(particle.pos)]
-        grid[str(downleft)] = particle
-        particle.pos = downleft
+        grid[str(neighbors['downright'])] = particle
+        particle.pos = neighbors['downright']
+    elif str(neighbors['downright']) in grid.keys() and particle_types[grid[str(neighbors['downright'])].type]['density'] < particle_types[particle.type]['density']:
+        del grid[str(particle.pos)]
+        replacing_particle = grid[str(neighbors['downright'])]
+        del grid[str(neighbors['downright'])]
+        grid[str(particle.pos)] = replacing_particle
+        grid[str(neighbors['downright'])] = particle
+        replacing_particle.pos = particle.pos
+        particle.pos = neighbors['downright']
+
+    elif not str(neighbors['downleft']) in grid.keys() and particle_types[particle.type]['density'] > 0:
+        del grid[str(particle.pos)]
+        grid[str(neighbors['downleft'])] = particle
+        particle.pos = neighbors['downleft']
+    elif str(neighbors['downleft']) in grid.keys() and particle_types[grid[str(neighbors['downleft'])].type]['density'] < particle_types[particle.type]['density']:
+        del grid[str(particle.pos)]
+        replacing_particle = grid[str(neighbors['downleft'])]
+        del grid[str(neighbors['downleft'])]
+        grid[str(particle.pos)] = replacing_particle
+        grid[str(neighbors['downleft'])] = particle
+        replacing_particle.pos = particle.pos
+        particle.pos = neighbors['downleft']
+
+    # check for up/diagonal up movement here
+
     elif particle_types[particle.type]['move_type'] == 'fluid':
-        if not str(right) in grid.keys():
+        if not str(neighbors['right']) in grid.keys():
             del grid[str(particle.pos)]
-            grid[str(right)] = particle
-            particle.pos = right
-        elif not str(left) in grid.keys():
+            grid[str(neighbors['right'])] = particle
+            particle.pos = neighbors['right']
+        elif str(neighbors['right']) in grid.keys() and particle_types[grid[str(neighbors['right'])].type]['density'] < particle_types[particle.type]['density']:
             del grid[str(particle.pos)]
-            grid[str(left)] = particle
-            particle.pos = left
+            replacing_particle = grid[str(neighbors['right'])]
+            del grid[str(neighbors['right'])]
+            grid[str(particle.pos)] = replacing_pos
+            grid[str(neighbors['right'])] = particle
+            replacing_particle.pos = particle.pos # THIS CODE IN EVERY BLOCK HERE MAY LINK THE TWO VARIABLES TOGETHER
+            particle.pos = neighbors['right']
+
+        elif not str(neighbors['left']) in grid.keys():
+            del grid[str(particle.pos)]
+            grid[str(neighbors['left'])] = particle
+            particle.pos = neighbors['left']
+        elif str(neighbors['left']) in grid.keys() and particle_types[grid[str(neighbors['left'])].type]['density'] < particle_types[particle.type]['density']:
+            del grid[str(particle.pos)]
+            replacing_particle = grid[str(neighbors['left'])]
+            del grid[str(neighbors['left'])]
+            grid[str(particle.pos)] = replacing_particle
+            grid[str(neighbors['left'])] = particle
+            replacing_particle.pos = particle.pos 
+            particle.pos = neighbors['left']
 
 def update_world():
     particles = list(grid.values())
