@@ -11,7 +11,7 @@ def create_particle(particle): # creates a grid entry for the new particle
     if particle_types[particle.type]['move_type'] != 'static':
         particle.active = True
 
-def move_particle(particle):
+def move_particle(particle): # i believe its possible particles could move twice if they were displaced by another particle falling and then they moved, this probably can be fixed with a "moved" bool
     neighbors = {
         'down' : [particle.pos[0],particle.pos[1]+1],
         'downright' : [particle.pos[0]+1,particle.pos[1]+1],
@@ -61,7 +61,21 @@ def move_particle(particle):
         replacing_particle.pos = particle.pos
         particle.pos = neighbors['downleft']
 
-    # check for up/diagonal up movement here
+    # there is no need for having things bubble up as the substance the are in will push them up
+    elif not str(neighbors['up']) in grid.keys() and particle_types[particle.type]['density'] < 0:
+        del grid[str(particle.pos)]
+        grid[str(neighbors['up'])] = particle
+        particle.pos = neighbors['up']
+    
+    elif not str(neighbors['upright']) in grid.keys() and particle_types[particle.type]['density'] < 0:
+        del grid[str(particle.pos)]
+        grid[str(neighbors['upright'])] = particle
+        particle.pos = neighbors['upright']
+    
+    elif not str(neighbors['upleft']) in grid.keys() and particle_types[particle.type]['density'] < 0:
+        del grid[str(particle.pos)]
+        grid[str(neighbors['upleft'])] = particle
+        particle.pos = neighbors['upleft']
 
     elif particle_types[particle.type]['move_type'] == 'fluid':
         if not str(neighbors['right']) in grid.keys():
@@ -72,9 +86,9 @@ def move_particle(particle):
             del grid[str(particle.pos)]
             replacing_particle = grid[str(neighbors['right'])]
             del grid[str(neighbors['right'])]
-            grid[str(particle.pos)] = replacing_pos
+            grid[str(particle.pos)] = replacing_particle
             grid[str(neighbors['right'])] = particle
-            replacing_particle.pos = particle.pos # THIS CODE IN EVERY BLOCK HERE MAY LINK THE TWO VARIABLES TOGETHER
+            replacing_particle.pos = particle.pos
             particle.pos = neighbors['right']
 
         elif not str(neighbors['left']) in grid.keys():
