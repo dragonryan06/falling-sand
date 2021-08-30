@@ -6,6 +6,8 @@ pygame.init()
 grid = {} # format: {cell:obj, cell2:obj2}
 dragging = False
 selected_particle = 0
+cursor_size = 1
+cursor_rect = pygame.Rect
 
 def create_particle(particle): # creates a grid entry for the new particle
     grid[str(particle.pos)] = particle
@@ -141,6 +143,7 @@ def update_world():
 def handle_input(event):
     global dragging
     global selected_particle
+    global cursor_size
     if event.type == pygame.MOUSEBUTTONDOWN:
         if event.button == pygame.BUTTON_LEFT:
             dragging = True
@@ -154,8 +157,14 @@ def handle_input(event):
             else:
                 selected_particle = 0
             print(particle_types[selected_particle]['name'].upper())
+        elif event.key == pygame.K_EQUALS:
+            cursor_size += 1
+        elif event.key == pygame.K_MINUS and cursor_size > 1:
+            cursor_size -= 1
     if dragging == True:
-        create_particle(Particle([round(pygame.mouse.get_pos()[0]/constants.CELLSIZE),round(pygame.mouse.get_pos()[1]/constants.CELLSIZE)],selected_particle))
+        for x in range(cursor_rect.left,cursor_rect.left+cursor_rect.width):
+           for y in range(cursor_rect.top,cursor_rect.top+cursor_rect.height):    
+                create_particle(Particle([x//constants.CELLSIZE,y//constants.CELLSIZE],selected_particle))
 
 def initialize():
     for x in range(int(constants.WIDTH/constants.CELLSIZE)):
@@ -167,6 +176,7 @@ def initialize():
     create_particle(Particle([5,1],0))
 
 def main_loop():
+    global cursor_rect
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -176,6 +186,8 @@ def main_loop():
             handle_input(event)
     constants.DISPLAY.fill(constants.BACKGROUND)
     update_world()
+    cursor_rect = pygame.Rect((pygame.mouse.get_pos()[0]//constants.CELLSIZE)*constants.CELLSIZE,(pygame.mouse.get_pos()[1]//constants.CELLSIZE)*constants.CELLSIZE,constants.CELLSIZE*cursor_size,constants.CELLSIZE*cursor_size)
+    pygame.draw.rect(constants.DISPLAY,(200,200,200),cursor_rect) # to add alpha this has to be a surface that is blitted to the screen
     constants.CLOCK.tick(constants.FPS)
 
 if __name__ == '__main__':

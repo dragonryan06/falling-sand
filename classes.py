@@ -34,7 +34,7 @@ class constants:
     FPS = 30
     DISPLAY = pygame.display.set_mode((WIDTH,HEIGHT))
     CLOCK = pygame.time.Clock()
-    CELLSIZE = 10
+    CELLSIZE = 5
 
 class Particle:
     def __init__(self,pos,particle_type):
