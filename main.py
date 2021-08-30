@@ -173,7 +173,6 @@ def initialize():
     for y in range(int(constants.HEIGHT/constants.CELLSIZE)):
         create_particle(Particle([0,y],1))
         create_particle(Particle([int(constants.WIDTH/constants.CELLSIZE)-1,y],1))
-    create_particle(Particle([5,1],0))
 
 def main_loop():
     global cursor_rect
