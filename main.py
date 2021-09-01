@@ -126,10 +126,9 @@ def reaction_check(p,neighbors):
                             for x in reactants:
                                 if reactions[r]['products'][reactions[r]['reactants'].index(x.type)] != -1:
                                     x.type = reactions[r]['products'][reactions[r]['reactants'].index(x.type)]
-                                    grid[str(x.pos)] = x
-                                else: # update this
-                                    del grid[str(x.pos)]
-                                    del x
+                                    set_cell(x,x.pos)
+                                else:
+                                    clear_cell(x,x.pos)
 
 def update_world():
     particles = list(grid.values())
