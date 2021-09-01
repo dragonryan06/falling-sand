@@ -125,11 +125,40 @@ def move_particle(particle): # i believe its possible particles could move twice
             moved = True
     return moved, neighbors
 
+def reaction_check(p,neighbors):
+    if len(particle_types[p.type]['reactions']) > 0:
+        for r in particle_types[p.type]['reactions']:
+            if len(reactions[r]['reactants']) > 1:
+                for n in neighbors.values():
+                    if str(n) in grid.keys() and p.type == grid[str(n)].type:
+                        continue
+                    elif str(n) in grid.keys() and grid[str(n)].type in reactions[r]['reactants']:
+                        if randint(0,reactions[r]['reaction_time']) == 0:
+                            reactants = [p,grid[str(n)]]
+                            for x in reactants:
+                                if reactions[r]['products'][reactions[r]['reactants'].index(x.type)] != -1:
+                                    x.type = reactions[r]['products'][reactions[r]['reactants'].index(x.type)]
+                                    grid[str(x.pos)] = x
+                                else:
+                                    del grid[str(x.pos)]
+                                    del x
+
 def update_world():
     particles = list(grid.values())
     for p in particles:
         if p.active:
-            moved, neighbors = move_particle(p)
+            moved, neighbors = move_particle(p) # return the moved bool if the particle changes as well because this may mean it needs to update position
+            reaction_check(p,neighbors)
+            if particle_types[p.type]['decay'] != None:
+                if p.age > particle_types[p.type]['decay'][1] and randint(0,4) == 0:
+                    if particle_types[p.type]['decay'][0] != -1:
+                        p.type = particle_types[p.type]['decay'][0]
+                        grid[str(p.pos)] = p
+                    else:
+                        del grid[str(p.pos)]
+                        del p
+                        continue
+            p.age += 1
             if moved == False:
                 p.active = False
             else:
