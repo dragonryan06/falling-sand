@@ -6,7 +6,7 @@ particle_types = [ # air has density of 0, negative values float to top, positiv
         'name':'sand',
         'move_type':'powder',
         'color':(235,225,52),
-        'density':2,
+        'density':3,
         'reactions':[],
         'decay':None
     },
@@ -22,7 +22,7 @@ particle_types = [ # air has density of 0, negative values float to top, positiv
         'name':'water',
         'move_type':'fluid',
         'color':(50,50,255),
-        'density':1,
+        'density':2,
         'reactions':[],
         'decay':None
     },
@@ -37,9 +37,9 @@ particle_types = [ # air has density of 0, negative values float to top, positiv
     {
         'name':'fire_gas',
         'move_type':'fluid',
-        'color':(235, 110, 52),
+        'color':(235,110,52),
         'density':-1,
-        'reactions':[0],
+        'reactions':[0,1,2],
         'decay':[5,8] # [decay_into,decay_min_age]
     },
     {
@@ -49,6 +49,38 @@ particle_types = [ # air has density of 0, negative values float to top, positiv
         'density':-1,
         'reactions':[],
         'decay':[-1,24]
+    },
+    {
+        'name':'wood',
+        'move_type':'static',
+        'color':(168,100,50),
+        'density':100,
+        'reactions':[1],
+        'decay':None
+    },
+    {
+        'name':'fire_solid',
+        'move_type':'static',
+        'color':(235,110,52),
+        'density':100,
+        'reactions':[],
+        'decay':[4,20]
+    },
+    {
+        'name':'oil',
+        'move_type':'fluid',
+        'color':(168,133,50),
+        'density':2,
+        'reactions':[2],
+        'decay':None
+    },
+    {
+        'name':'fire_liquid',
+        'move_type':'fluid',
+        'color':(235,110,52),
+        'density':2,
+        'reactions':[],
+        'decay':[4,20]
     }
 ]
 reactions = [
@@ -56,7 +88,19 @@ reactions = [
         'name':'hydrogen combust',
         'reactants':[3,4],
         'products':[4,4],
-        'reaction_time':5
+        'reaction_difficulty':5 # this is basically since there is no energy, the more energy required the less likely it is to happen.
+    },
+    {
+        'name':'wood combust',
+        'reactants':[6,4],
+        'products':[7,4],
+        'reaction_difficulty':20
+    },
+    {
+        'name':'oil combust',
+        'reactants':[8,4],
+        'products':[9,4],
+        'reaction_difficulty':8
     }
 ]
 

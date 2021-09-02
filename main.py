@@ -56,7 +56,7 @@ def move_particle(particle): # i believe its possible particles could move twice
         replacing_particle = grid[str(neighbors['down'])]
         clear_cell(grid[str(neighbors['down'])],neighbors['down'])
         set_cell(replacing_particle,particle.pos)
-        set_cell(particle,str(neighbors['down']))
+        set_cell(particle,neighbors['down'])
 
     elif not str(neighbors['downdiagonal1']) in grid.keys() and particle_types[particle.type]['density'] > 0:
         clear_cell(particle,particle.pos)
@@ -66,7 +66,7 @@ def move_particle(particle): # i believe its possible particles could move twice
         replacing_particle = grid[str(neighbors['downdiagonal1'])]
         clear_cell(grid[str(neighbors['downdiagonal1'])],neighbors['downdiagonal1'])
         set_cell(replacing_particle,particle.pos)
-        set_cell(particle,str(neighbors['downdiagonal1']))
+        set_cell(particle,neighbors['downdiagonal1'])
 
     elif not str(neighbors['downdiagonal2']) in grid.keys() and particle_types[particle.type]['density'] > 0:
         clear_cell(particle,particle.pos)
@@ -76,7 +76,7 @@ def move_particle(particle): # i believe its possible particles could move twice
         replacing_particle = grid[str(neighbors['downdiagonal2'])]
         clear_cell(grid[str(neighbors['downdiagonal2'])],neighbors['downdiagonal2'])
         set_cell(replacing_particle,particle.pos)
-        set_cell(particle,str(neighbors['downdiagonal2']))
+        set_cell(particle,neighbors['downdiagonal2'])
 
     # there is no need for having things bubble up as the substance the are in will push them up
     elif not str(neighbors['up']) in grid.keys() and particle_types[particle.type]['density'] < 0:
@@ -100,7 +100,7 @@ def move_particle(particle): # i believe its possible particles could move twice
             replacing_particle = grid[str(neighbors['side1'])]
             clear_cell(grid[str(neighbors['side1'])],neighbors['side1'])
             set_cell(replacing_particle,particle.pos)
-            set_cell(particle,str(neighbors['side1']))
+            set_cell(particle,neighbors['side1'])
 
         elif not str(neighbors['side2']) in grid.keys():
             clear_cell(particle,particle.pos)
@@ -110,42 +110,51 @@ def move_particle(particle): # i believe its possible particles could move twice
             replacing_particle = grid[str(neighbors['side2'])]
             clear_cell(grid[str(neighbors['side2'])],neighbors['side2'])
             set_cell(replacing_particle,particle.pos)
-            set_cell(particle,str(neighbors['side2']))
+            set_cell(particle,neighbors['side2'])
     return neighbors
 
 def reaction_check(p,neighbors):
     if len(particle_types[p.type]['reactions']) > 0:
         for r in particle_types[p.type]['reactions']:
-            if len(reactions[r]['reactants']) > 1:
-                for n in neighbors.values():
-                    if str(n) in grid.keys() and p.type == grid[str(n)].type:
-                        continue
-                    elif str(n) in grid.keys() and grid[str(n)].type in reactions[r]['reactants']:
-                        if randint(0,reactions[r]['reaction_time']) == 0:
-                            reactants = [p,grid[str(n)]]
-                            for x in reactants:
-                                if reactions[r]['products'][reactions[r]['reactants'].index(x.type)] != -1:
-                                    x.type = reactions[r]['products'][reactions[r]['reactants'].index(x.type)]
-                                    set_cell(x,x.pos)
-                                else:
-                                    clear_cell(x,x.pos)
+            for n in neighbors.values():
+                if str(n) in grid.keys() and p.type == grid[str(n)].type:
+                    continue
+                elif str(n) in grid.keys() and grid[str(n)].type in reactions[r]['reactants']:
+                    if randint(0,reactions[r]['reaction_difficulty']) == 0:
+                        reactants = [p,grid[str(n)]]
+                        for x in reactants:
+                            if reactions[r]['products'][reactions[r]['reactants'].index(x.type)] != -1:
+                                del grid[str(x.pos)]
+                                pos = x.pos
+                                old_type = x.type
+                                del x
+                                new_x = Particle(pos,reactions[r]['products'][reactions[r]['reactants'].index(old_type)])
+                                set_cell(new_x,pos)
+                            else:
+                                clear_cell(x,x.pos)
 
 def update_world():
     particles = list(grid.values())
+    neighbors = {}
     for p in particles:
         if p.active:
             neighbors = move_particle(p)
-            reaction_check(p,neighbors)
-            if particle_types[p.type]['decay'] != None:
-                if p.age > particle_types[p.type]['decay'][1] and randint(0,4) == 0:
-                    if particle_types[p.type]['decay'][0] != -1:
-                        p.type = particle_types[p.type]['decay'][0]
-                        grid[str(p.pos)] = p
-                    else:
-                        del grid[str(p.pos)]
-                        del p
-                        continue
-            p.age += 1
+        if particle_types[p.type]['decay'] != None:
+            if p.age > particle_types[p.type]['decay'][1] and randint(0,4) == 0:
+                if particle_types[p.type]['decay'][0] != -1:
+                    del grid[str(p.pos)]
+                    pos = p.pos
+                    old_type = p.type
+                    del p
+                    new_p = Particle(pos,particle_types[old_type]['decay'][0])
+                    set_cell(new_p,pos)
+                    continue
+                else:
+                    del grid[str(p.pos)]
+                    del p
+                    continue
+        reaction_check(p,neighbors)
+        p.age += 1
             
         pygame.draw.rect(constants.DISPLAY,particle_types[p.type]['color'],(p.pos[0]*constants.CELLSIZE,p.pos[1]*constants.CELLSIZE,constants.CELLSIZE,constants.CELLSIZE))
 
