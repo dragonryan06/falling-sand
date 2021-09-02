@@ -116,22 +116,31 @@ def move_particle(particle): # i believe its possible particles could move twice
 def reaction_check(p,neighbors):
     if len(particle_types[p.type]['reactions']) > 0:
         for r in particle_types[p.type]['reactions']:
-            for n in neighbors.values():
-                if str(n) in grid.keys() and p.type == grid[str(n)].type:
+            for i in reactions[r]['reactants']:
+                if p.type in i:
+                    for n in neighbors.values():
+                        if str(n) in grid.keys() and p.type == grid[str(n)].type:
+                            continue
+                        elif str(n) in grid.keys() and grid[str(n)].type in i:
+                            if randint(0,reactions[r]['reaction_difficulty']) == 0:
+                                reactants = [p,grid[str(n)]]
+                                for x in reactants:
+                                    print(i.index(x.type))
+                                    print(reactions[r]['products'])
+                                    if reactions[r]['products'][i.index(x.type)] == -1:
+                                        clear_cell(x,x.pos)
+                                        continue
+                                    elif reactions[r]['products'][i.index(x.type)] == -2:
+                                        continue
+                                    else:
+                                        del grid[str(x.pos)]
+                                        pos = x.pos
+                                        old_type = x.type
+                                        del x
+                                        new_x = Particle(pos,reactions[r]['products'][i.index(old_type)])
+                                        set_cell(new_x,pos)
+                else:
                     continue
-                elif str(n) in grid.keys() and grid[str(n)].type in reactions[r]['reactants']:
-                    if randint(0,reactions[r]['reaction_difficulty']) == 0:
-                        reactants = [p,grid[str(n)]]
-                        for x in reactants:
-                            if reactions[r]['products'][reactions[r]['reactants'].index(x.type)] != -1:
-                                del grid[str(x.pos)]
-                                pos = x.pos
-                                old_type = x.type
-                                del x
-                                new_x = Particle(pos,reactions[r]['products'][reactions[r]['reactants'].index(old_type)])
-                                set_cell(new_x,pos)
-                            else:
-                                clear_cell(x,x.pos)
 
 def update_world():
     particles = list(grid.values())

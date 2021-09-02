@@ -86,21 +86,21 @@ particle_types = [ # air has density of 0, negative values float to top, positiv
 reactions = [
     {
         'name':'hydrogen combust',
-        'reactants':[3,4],
-        'products':[4,4],
-        'reaction_difficulty':5 # this is basically since there is no energy, the more energy required the less likely it is to happen.
+        'reactants':[[3,4],[3,7],[3,9]],
+        'products':[4,-2],
+        'reaction_difficulty':2 # this is basically since there is no energy, the more energy required the less likely it is to happen.
     },
     {
         'name':'wood combust',
-        'reactants':[6,4],
-        'products':[7,4],
-        'reaction_difficulty':20
+        'reactants':[[6,4],[6,7],[6,9]],
+        'products':[7,-2],
+        'reaction_difficulty':8
     },
     {
         'name':'oil combust',
-        'reactants':[8,4],
-        'products':[9,4],
-        'reaction_difficulty':8
+        'reactants':[[8,4],[8,7],[8,9]],
+        'products':[9,-2],
+        'reaction_difficulty':5
     }
 ]
 
