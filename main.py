@@ -125,8 +125,6 @@ def reaction_check(p,neighbors):
                             if randint(0,reactions[r]['reaction_difficulty']) == 0:
                                 reactants = [p,grid[str(n)]]
                                 for x in reactants:
-                                    print(i.index(x.type))
-                                    print(reactions[r]['products'])
                                     if reactions[r]['products'][i.index(x.type)] == -1:
                                         clear_cell(x,x.pos)
                                         continue
