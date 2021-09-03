@@ -9,12 +9,13 @@ selected_particle = 0
 cursor_size = 1
 cursor_rect = pygame.Rect
 
-def create_particle(particle): # creates a grid entry for the new particle
+def create_particle(particle:Particle) -> None:
+    # creates a grid entry for the new particle
     grid[str(particle.pos)] = particle
     if particle_types[particle.type]['move_type'] != 'static':
         particle.active = True
 
-def set_cell(particle,pos):
+def set_cell(particle:Particle,pos:list) -> None:
     grid[str(pos)] = particle
     particle.pos = pos
     neighbors = [[particle.pos[0],particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]+1],[particle.pos[0]-1,particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]],[particle.pos[0]-1,particle.pos[1]],[particle.pos[0],particle.pos[1]-1],[particle.pos[0]+1,particle.pos[1]-1],[particle.pos[0]-1,particle.pos[1]-1]]
@@ -25,7 +26,7 @@ def set_cell(particle,pos):
             if particle_types[grid[str(n)].type]['move_type'] != 'static':
                 grid[str(n)].active = True
 
-def clear_cell(particle,pos):
+def clear_cell(particle:Particle,pos:list) -> None:
     neighbors = [[particle.pos[0],particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]+1],[particle.pos[0]-1,particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]],[particle.pos[0]-1,particle.pos[1]],[particle.pos[0],particle.pos[1]-1],[particle.pos[0]+1,particle.pos[1]-1],[particle.pos[0]-1,particle.pos[1]-1]]
     for n in neighbors:
         if str(n) in grid.keys():
@@ -34,7 +35,7 @@ def clear_cell(particle,pos):
     del grid[str(pos)]
 
 
-def move_particle(particle): # i believe its possible particles could move twice if they were displaced by another particle falling and then they moved, this probably can be fixed with a "moved" bool property that says if the particle moved that frame already
+def move_particle(particle:Particle) -> dict: # i believe its possible particles could move twice if they were displaced by another particle falling and then they moved, this probably can be fixed with a "moved" bool property that says if the particle moved that frame already
     direction = randint(0,1)
     if direction == 0:
         direction = -1
@@ -113,7 +114,7 @@ def move_particle(particle): # i believe its possible particles could move twice
             set_cell(particle,neighbors['side2'])
     return neighbors
 
-def reaction_check(p,neighbors):
+def reaction_check(p:Particle,neighbors:dict) -> None:
     if len(particle_types[p.type]['reactions']) > 0:
         for r in particle_types[p.type]['reactions']:
             for i in reactions[r]['reactants']:
@@ -140,7 +141,7 @@ def reaction_check(p,neighbors):
                 else:
                     continue
 
-def update_world():
+def update_world() -> None:
     particles = list(grid.values())
     neighbors = {}
     for p in particles:
@@ -165,7 +166,7 @@ def update_world():
             
         pygame.draw.rect(constants.DISPLAY,particle_types[p.type]['color'],(p.pos[0]*constants.CELLSIZE,p.pos[1]*constants.CELLSIZE,constants.CELLSIZE,constants.CELLSIZE))
 
-def handle_input(event):
+def handle_input(event:pygame.event) -> None:
     global dragging
     global selected_particle
     global cursor_size
@@ -191,7 +192,7 @@ def handle_input(event):
            for y in range(cursor_rect.top,cursor_rect.top+cursor_rect.height):    
                 create_particle(Particle([x//constants.CELLSIZE,y//constants.CELLSIZE],selected_particle))
 
-def initialize():
+def initialize() -> None:
     for x in range(int(constants.WIDTH/constants.CELLSIZE)):
         create_particle(Particle([x,int(constants.HEIGHT/constants.CELLSIZE)-1],1))
         create_particle(Particle([x,0],1))
@@ -199,7 +200,7 @@ def initialize():
         create_particle(Particle([0,y],1))
         create_particle(Particle([int(constants.WIDTH/constants.CELLSIZE)-1,y],1))
 
-def main_loop():
+def main_loop() -> None:
     global cursor_rect
     pygame.display.update()
     for event in pygame.event.get():
