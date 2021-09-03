@@ -2,3 +2,4 @@ __pycache__/
 env/
 .classes.py.swp
 .README.txt.swp
+.vscode/
