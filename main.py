@@ -147,6 +147,7 @@ def update_world() -> None:
     for p in particles:
         if p.active:
             neighbors = move_particle(p)
+            reaction_check(p,neighbors)
         if particle_types[p.type]['decay'] != None:
             if p.age > particle_types[p.type]['decay'][1] and randint(0,4) == 0:
                 if particle_types[p.type]['decay'][0] != -1:
@@ -161,7 +162,6 @@ def update_world() -> None:
                     del grid[str(p.pos)]
                     del p
                     continue
-        reaction_check(p,neighbors)
         p.age += 1
             
         pygame.draw.rect(constants.DISPLAY,particle_types[p.type]['color'],(p.pos[0]*constants.CELLSIZE,p.pos[1]*constants.CELLSIZE,constants.CELLSIZE,constants.CELLSIZE))
