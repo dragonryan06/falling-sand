@@ -14,6 +14,17 @@ def create_particle(particle:Particle) -> None:
     grid[str(particle.pos)] = particle
     if particle_types[particle.type]['move_type'] != 'static':
         particle.active = True
+    particle.color = []
+    for i in particle_types[particle.type]['color']:
+        sign = randint(0,1)
+        if sign == 0:
+            sign = -1
+        value = i+randint(0,10)*sign
+        if value > 255:
+            value = 255
+        if value < 0:
+            value = 0
+        particle.color.append(value)
 
 def set_cell(particle:Particle,pos:list) -> None:
     grid[str(pos)] = particle
@@ -136,8 +147,7 @@ def reaction_check(p:Particle,neighbors:dict) -> None:
                                         pos = x.pos
                                         old_type = x.type
                                         del x
-                                        new_x = Particle(pos,reactions[r]['products'][i.index(old_type)])
-                                        set_cell(new_x,pos)
+                                        create_particle(Particle(pos,reactions[r]['products'][i.index(old_type)]))
                 else:
                     continue
 
@@ -155,16 +165,26 @@ def update_world() -> None:
                     pos = p.pos
                     old_type = p.type
                     del p
-                    new_p = Particle(pos,particle_types[old_type]['decay'][0])
-                    set_cell(new_p,pos)
+                    create_particle(Particle(pos,particle_types[old_type]['decay'][0]))
                     continue
                 else:
                     del grid[str(p.pos)]
                     del p
                     continue
         p.age += 1
-            
-        pygame.draw.rect(constants.DISPLAY,particle_types[p.type]['color'],(p.pos[0]*constants.CELLSIZE,p.pos[1]*constants.CELLSIZE,constants.CELLSIZE,constants.CELLSIZE))
+        if particle_types[p.type]['density'] < 0:
+            p.color = []
+            for i in particle_types[p.type]['color']:
+                sign = randint(0,1)
+                if sign == 0:
+                    sign = -1
+                value = i+randint(0,10)*sign
+                if value > 255:
+                    value = 255
+                if value < 0:
+                    value = 0
+                p.color.append(value)
+        pygame.draw.rect(constants.DISPLAY,tuple(p.color),(p.pos[0]*constants.CELLSIZE,p.pos[1]*constants.CELLSIZE,constants.CELLSIZE,constants.CELLSIZE))
 
 def handle_input(event:pygame.event) -> None:
     global dragging

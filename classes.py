@@ -118,4 +118,5 @@ class Particle:
         self.type = particle_type
         self.active = False
         self.age = 0
+        self.color = []
         #self.velocity
