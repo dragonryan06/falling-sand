@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame, sys, cProfile, pstats
 from classes import *
 from random import randint
 pygame.init()
@@ -25,6 +25,7 @@ def create_particle(particle:Particle) -> None:
         if value < 0:
             value = 0
         particle.color.append(value)
+        # TODO change this system to instead of assigning and saving a color, color things based on their x,y position with some sort of random map or something
 
 def set_cell(particle:Particle,pos:list) -> None:
     grid[str(pos)] = particle
@@ -38,11 +39,11 @@ def set_cell(particle:Particle,pos:list) -> None:
                 grid[str(n)].active = True
 
 def clear_cell(particle:Particle,pos:list) -> None:
-    neighbors = [[particle.pos[0],particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]+1],[particle.pos[0]-1,particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]],[particle.pos[0]-1,particle.pos[1]],[particle.pos[0],particle.pos[1]-1],[particle.pos[0]+1,particle.pos[1]-1],[particle.pos[0]-1,particle.pos[1]-1]]
-    for n in neighbors:
-        if str(n) in grid.keys():
-            if particle_types[grid[str(n)].type]['move_type'] != 'static':
-                grid[str(n)].active = True
+#    neighbors = [[particle.pos[0],particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]+1],[particle.pos[0]-1,particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]],[particle.pos[0]-1,particle.pos[1]],[particle.pos[0],particle.pos[1]-1],[particle.pos[0]+1,particle.pos[1]-1],[particle.pos[0]-1,particle.pos[1]-1]]
+#    for n in neighbors:
+#        if str(n) in grid.keys(): REMOVED THIS FOR OPTIMIZATION, FIND A BETTER SYSTEM IF IT BECOMES AN ISSUE
+#            if particle_types[grid[str(n)].type]['move_type'] != 'static':
+#                grid[str(n)].active = True
     del grid[str(pos)]
 
 
@@ -154,7 +155,7 @@ def reaction_check(p:Particle,neighbors:dict) -> None:
 def update_world() -> None:
     particles = list(grid.values())
     neighbors = {}
-    for p in particles:
+    for p in particles: # TODO: change so it only iterates through dirty rects not the full grid
         if p.active:
             neighbors = move_particle(p)
             reaction_check(p,neighbors)
@@ -237,5 +238,8 @@ def main_loop() -> None:
 
 if __name__ == '__main__':
     initialize()
+    profile = cProfile.Profile()
     while True:
-        main_loop()
+        profile.runcall(main_loop)
+        ps = pstats.Stats(profile)
+        ps.print_stats()
