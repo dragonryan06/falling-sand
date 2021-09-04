@@ -1,6 +1,10 @@
 import pygame, sys
 pygame.init()
 
+"""
+Stores constant data and classes
+"""
+
 particle_types = [ # air has density of 0, negative values float to top, positive fall
     {
         'name':'sand',
