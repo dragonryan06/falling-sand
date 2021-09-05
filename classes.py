@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame, sys, world
 pygame.init()
 
 """
@@ -127,6 +127,41 @@ class Particle:
         #self.velocity
 
 class Chunk:
-    def __init__(self,pos):
-        self.bounds = pygame.Rect(pos[0],pos[1],constants.CHUNKSIZE,constants.CHUNKSIZE)
+    def __init__(self,pos:list) -> None:
+        self.bounds = pygame.Rect(pos[0]*constants.CELLSIZE*constants.CHUNKSIZE,pos[1]*constants.CELLSIZE*constants.CHUNKSIZE,constants.CHUNKSIZE,constants.CHUNKSIZE)
+        self.data = {}
         self.dirty_rect = None
+    
+    def add_particle(self,pos:list,particle:Particle) -> None:
+        self.data[str(pos)] = particle
+        if particle_types[particle.type]['move_type'] != 'static':  
+            self.expand_dirty_rect(pos)         
+
+    def remove_particle(self,pos:list) -> None:
+        del self.data[str(pos)]
+        self.expand_dirty_rect(pos)
+
+    def expand_dirty_rect(self,pos:list) -> None:
+        if self.dirty_rect == None:
+            self.dirty_rect = pygame.Rect(pos[0]-1,pos[1]-1,3,3)
+        else:
+            left,right,top,bottom = self.dirty_rect.left,self.dirty_rect.right,self.dirty_rect.top,self.dirty_rect.bottom
+            if pos[0] <= self.dirty_rect.left:
+                left = pos[0]-1
+            elif pos[0]+1 >= self.dirty_rect.right:
+                right = pos[0]+2
+            if pos[1] <= self.dirty_rect.top:
+                top = pos[1]-1
+            elif pos[1]+1 >= self.dirty_rect.bottom:
+                bottom = pos[1]+2
+            self.dirty_rect = pygame.Rect(left,top,right-left,bottom-top)
+
+    def update(self) -> None:
+        old_dirty_rect = self.dirty_rect.copy()
+        self.dirty_rect = None
+        for x in range(old_dirty_rect.left,old_dirty_rect.left+old_dirty_rect.width):
+            for y in range(old_dirty_rect.top,old_dirty_rect.top+old_dirty_rect.height):
+                if str([x,y]) in self.data.keys():
+                    if particle_types[self.data[str([x,y])].type]['move_type'] != 'static':
+                        world.move_particle(self.data[str([x,y])],self)
+                        self.expand_dirty_rect([x,y])

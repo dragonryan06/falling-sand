@@ -11,10 +11,11 @@ grid = {} # format: {cell:obj}
 chunks = {} # format: {pos:obj}
 
 def create_particle(particle:Particle) -> None:
-    # creates a grid entry for the new particle
-    grid[str(particle.pos)] = particle
-    if particle_types[particle.type]['move_type'] != 'static':
-        particle.active = True
+    chunk = chunks[str([particle.pos[0]//constants.CHUNKSIZE,particle.pos[1]//constants.CHUNKSIZE])]
+    chunk.add_particle(particle.pos,particle)
+    # grid[str(particle.pos)] = particle
+    # if particle_types[particle.type]['move_type'] != 'static':
+    #     particle.active = True
     particle.color = []
     for i in particle_types[particle.type]['color']:
         sign = randint(0,1)
@@ -29,30 +30,23 @@ def create_particle(particle:Particle) -> None:
         # TODO change this system to instead of assigning and saving a color, color things based on their x,y position with some sort of random map or something
 
 def set_cell(particle:Particle,pos:list) -> None:
-    grid[str(pos)] = particle
+    chunk = chunks[str([particle.pos[0]//constants.CHUNKSIZE,particle.pos[1]//constants.CHUNKSIZE])]
+    chunk.add_particle(pos,particle)
     particle.pos = pos
-    neighbors = [[particle.pos[0],particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]+1],[particle.pos[0]-1,particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]],[particle.pos[0]-1,particle.pos[1]],[particle.pos[0],particle.pos[1]-1],[particle.pos[0]+1,particle.pos[1]-1],[particle.pos[0]-1,particle.pos[1]-1]]
-    if particle_types[particle.type]['move_type'] != 'static':
-        particle.active = True
-    for n in neighbors:
-        if str(n) in grid.keys():
-            if particle_types[grid[str(n)].type]['move_type'] != 'static':
-                grid[str(n)].active = True
 
-def clear_cell(particle:Particle,pos:list) -> None:
-#    neighbors = [[particle.pos[0],particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]+1],[particle.pos[0]-1,particle.pos[1]+1],[particle.pos[0]+1,particle.pos[1]],[particle.pos[0]-1,particle.pos[1]],[particle.pos[0],particle.pos[1]-1],[particle.pos[0]+1,particle.pos[1]-1],[particle.pos[0]-1,particle.pos[1]-1]]
-#    for n in neighbors:
-#        if str(n) in grid.keys(): REMOVED THIS FOR OPTIMIZATION, FIND A BETTER SYSTEM IF IT BECOMES AN ISSUE
-#            if particle_types[grid[str(n)].type]['move_type'] != 'static':
-#                grid[str(n)].active = True
-    del grid[str(pos)]
+def clear_cell(particle:Particle,pos:list) -> None: # the particle and pos args are redundant, remove later
+    chunk = chunks[str([particle.pos[0]//constants.CHUNKSIZE,particle.pos[1]//constants.CHUNKSIZE])]
+    chunk.remove_particle(pos)
 
 def update() -> None:
     for c in chunks.values():
-        c.update(grid)
+        if c.dirty_rect != None:
+            c.update()
+
+def update_OLD() -> None:
     particles = list(grid.values())
     neighbors = {}
-    for p in particles: # TODO: change so it only iterates through dirty rects not the full grid
+    for p in particles:
         if p.active:
             neighbors = move_particle(p)
             reaction_check(p,neighbors)
@@ -110,7 +104,7 @@ def reaction_check(p:Particle,neighbors:dict) -> None:
                 else:
                     continue
 
-def move_particle(particle:Particle) -> dict: # i believe its possible particles could move twice if they were displaced by another particle falling and then they moved, this probably can be fixed with a "moved" bool property that says if the particle moved that frame already
+def move_particle(particle:Particle,chunk:Chunk): # i believe its possible particles could move twice if they were displaced by another particle falling and then they moved, this probably can be fixed with a "moved" bool property that says if the particle moved that frame already
     direction = randint(0,1)
     if direction == 0:
         direction = -1
@@ -122,69 +116,69 @@ def move_particle(particle:Particle) -> dict: # i believe its possible particles
         'side2' : [particle.pos[0]-direction,particle.pos[1]],
         'up' : [particle.pos[0],particle.pos[1]-1],
         'updiagonal1' : [particle.pos[0]+direction,particle.pos[1]-1],
-        'updiagonal2' : [particle.pos[0]-direction,particle.pos[1]-1]}
+        'updiagonal2' : [particle.pos[0]-direction,particle.pos[1]-1]
+        }
 
-    if not str(neighbors['down']) in grid.keys() and particle_types[particle.type]['density'] > 0:
+    if not str(neighbors['down']) in chunk.data.keys() and particle_types[particle.type]['density'] > 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['down'])
-    elif str(neighbors['down']) in grid.keys() and particle_types[grid[str(neighbors['down'])].type]['density'] < particle_types[particle.type]['density']:
+    elif str(neighbors['down']) in chunk.data.keys() and particle_types[chunk.data[str(neighbors['down'])].type]['density'] < particle_types[particle.type]['density']:
         clear_cell(particle,particle.pos)
-        replacing_particle = grid[str(neighbors['down'])]
-        clear_cell(grid[str(neighbors['down'])],neighbors['down'])
+        replacing_particle = chunk.data[str(neighbors['down'])]
+        clear_cell(chunk.data[str(neighbors['down'])],neighbors['down'])
         set_cell(replacing_particle,particle.pos)
         set_cell(particle,neighbors['down'])
 
-    elif not str(neighbors['downdiagonal1']) in grid.keys() and particle_types[particle.type]['density'] > 0:
+    elif not str(neighbors['downdiagonal1']) in chunk.data.keys() and particle_types[particle.type]['density'] > 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['downdiagonal1'])
-    elif str(neighbors['downdiagonal1']) in grid.keys() and particle_types[grid[str(neighbors['downdiagonal1'])].type]['density'] < particle_types[particle.type]['density']:
+    elif str(neighbors['downdiagonal1']) in chunk.data.keys() and particle_types[chunk.data[str(neighbors['downdiagonal1'])].type]['density'] < particle_types[particle.type]['density']:
         clear_cell(particle,particle.pos)
-        replacing_particle = grid[str(neighbors['downdiagonal1'])]
-        clear_cell(grid[str(neighbors['downdiagonal1'])],neighbors['downdiagonal1'])
+        replacing_particle = chunk.data[str(neighbors['downdiagonal1'])]
+        clear_cell(chunk.data[str(neighbors['downdiagonal1'])],neighbors['downdiagonal1'])
         set_cell(replacing_particle,particle.pos)
         set_cell(particle,neighbors['downdiagonal1'])
 
-    elif not str(neighbors['downdiagonal2']) in grid.keys() and particle_types[particle.type]['density'] > 0:
+    elif not str(neighbors['downdiagonal2']) in chunk.data.keys() and particle_types[particle.type]['density'] > 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['downdiagonal2'])
-    elif str(neighbors['downdiagonal2']) in grid.keys() and particle_types[grid[str(neighbors['downdiagonal2'])].type]['density'] < particle_types[particle.type]['density']:
+    elif str(neighbors['downdiagonal2']) in chunk.data.keys() and particle_types[chunk.data[str(neighbors['downdiagonal2'])].type]['density'] < particle_types[particle.type]['density']:
         clear_cell(particle,particle.pos)
-        replacing_particle = grid[str(neighbors['downdiagonal2'])]
-        clear_cell(grid[str(neighbors['downdiagonal2'])],neighbors['downdiagonal2'])
+        replacing_particle = chunk.data[str(neighbors['downdiagonal2'])]
+        clear_cell(chunk.data[str(neighbors['downdiagonal2'])],neighbors['downdiagonal2'])
         set_cell(replacing_particle,particle.pos)
         set_cell(particle,neighbors['downdiagonal2'])
 
     # there is no need for having things bubble up as the substance the are in will push them up
-    elif not str(neighbors['up']) in grid.keys() and particle_types[particle.type]['density'] < 0:
+    elif not str(neighbors['up']) in chunk.data.keys() and particle_types[particle.type]['density'] < 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['up'])
     
-    elif not str(neighbors['updiagonal1']) in grid.keys() and particle_types[particle.type]['density'] < 0:
+    elif not str(neighbors['updiagonal1']) in chunk.data.keys() and particle_types[particle.type]['density'] < 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['updiagonal1'])
     
-    elif not str(neighbors['updiagonal2']) in grid.keys() and particle_types[particle.type]['density'] < 0:
+    elif not str(neighbors['updiagonal2']) in chunk.data.keys() and particle_types[particle.type]['density'] < 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['updiagonal2'])
 
     elif particle_types[particle.type]['move_type'] == 'fluid':
-        if not str(neighbors['side1']) in grid.keys():
+        if not str(neighbors['side1']) in chunk.data.keys():
             clear_cell(particle,particle.pos)
             set_cell(particle,neighbors['side1'])
-        elif str(neighbors['side1']) in grid.keys() and particle_types[grid[str(neighbors['side1'])].type]['density'] < particle_types[particle.type]['density']:
+        elif str(neighbors['side1']) in chunk.data.keys() and particle_types[chunk.data[str(neighbors['side1'])].type]['density'] < particle_types[particle.type]['density']:
             clear_cell(particle,particle.pos)
-            replacing_particle = grid[str(neighbors['side1'])]
-            clear_cell(grid[str(neighbors['side1'])],neighbors['side1'])
+            replacing_particle = chunk.data[str(neighbors['side1'])]
+            clear_cell(chunk.data[str(neighbors['side1'])],neighbors['side1'])
             set_cell(replacing_particle,particle.pos)
             set_cell(particle,neighbors['side1'])
 
-        elif not str(neighbors['side2']) in grid.keys():
+        elif not str(neighbors['side2']) in chunk.data.keys():
             clear_cell(particle,particle.pos)
             set_cell(particle,neighbors['side2'])
-        elif str(neighbors['side2']) in grid.keys() and particle_types[grid[str(neighbors['side2'])].type]['density'] < particle_types[particle.type]['density']:
+        elif str(neighbors['side2']) in chunk.data.keys() and particle_types[chunk.data[str(neighbors['side2'])].type]['density'] < particle_types[particle.type]['density']:
             clear_cell(particle,particle.pos)
-            replacing_particle = grid[str(neighbors['side2'])]
-            clear_cell(grid[str(neighbors['side2'])],neighbors['side2'])
+            replacing_particle = chunk.data[str(neighbors['side2'])]
+            clear_cell(chunk.data[str(neighbors['side2'])],neighbors['side2'])
             set_cell(replacing_particle,particle.pos)
             set_cell(particle,neighbors['side2'])
-    return neighbors
