@@ -39,12 +39,17 @@ def handle_input(event:pygame.event) -> None:
                 world.create_particle(Particle([x//constants.CELLSIZE,y//constants.CELLSIZE],selected_particle))
 
 def initialize() -> None:
-    for x in range(int(constants.WIDTH/constants.CELLSIZE)):
-        world.create_particle(Particle([x,int(constants.HEIGHT/constants.CELLSIZE)-1],1))
-        world.create_particle(Particle([x,0],1))
-    for y in range(int(constants.HEIGHT/constants.CELLSIZE)):
-        world.create_particle(Particle([0,y],1))
-        world.create_particle(Particle([int(constants.WIDTH/constants.CELLSIZE)-1,y],1))
+    for x in range(constants.WIDTH//constants.CELLSIZE):
+        for y in range(constants.HEIGHT//constants.CELLSIZE):
+            if x % constants.CHUNKSIZE == 0 and y % constants.CHUNKSIZE == 0:
+                pos = [x*constants.CELLSIZE,y*constants.CELLSIZE]
+                world.chunks[str(pos)] = Chunk(pos)
+    # for x in range(int(constants.WIDTH/constants.CELLSIZE)):
+    #     world.create_particle(Particle([x,int(constants.HEIGHT/constants.CELLSIZE)-1],1))
+    #     world.create_particle(Particle([x,0],1))
+    # for y in range(int(constants.HEIGHT/constants.CELLSIZE)):
+    #     world.create_particle(Particle([0,y],1))
+    #     world.create_particle(Particle([int(constants.WIDTH/constants.CELLSIZE)-1,y],1))
 
 def main_loop() -> None:
     global cursor_rect
@@ -57,6 +62,9 @@ def main_loop() -> None:
             handle_input(event)
     constants.DISPLAY.fill(constants.BACKGROUND)
     world.update()
+    for c in world.chunks.values():
+        rect = c.bounds.copy()
+        pygame.draw.rect(constants.DISPLAY,(255,255,255),(rect.left,rect.top,rect.width*constants.CELLSIZE,rect.height*constants.CELLSIZE),1)
     cursor_rect = pygame.Rect((pygame.mouse.get_pos()[0]//constants.CELLSIZE)*constants.CELLSIZE,(pygame.mouse.get_pos()[1]//constants.CELLSIZE)*constants.CELLSIZE,constants.CELLSIZE*cursor_size,constants.CELLSIZE*cursor_size)
     pygame.draw.rect(constants.DISPLAY,(200,200,200),cursor_rect) # to add alpha this has to be a surface that is blitted to the screen
     constants.CLOCK.tick(constants.FPS)

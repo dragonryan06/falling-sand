@@ -7,7 +7,8 @@ pygame.init()
 Handles all simulation events
 """
 
-grid = {} # format: {cell:obj, cell2:obj2}
+grid = {} # format: {cell:obj}
+chunks = {} # format: {pos:obj}
 
 def create_particle(particle:Particle) -> None:
     # creates a grid entry for the new particle
@@ -47,6 +48,8 @@ def clear_cell(particle:Particle,pos:list) -> None:
     del grid[str(pos)]
 
 def update() -> None:
+    for c in chunks.values():
+        c.update(grid)
     particles = list(grid.values())
     neighbors = {}
     for p in particles: # TODO: change so it only iterates through dirty rects not the full grid

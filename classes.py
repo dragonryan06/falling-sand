@@ -109,12 +109,13 @@ reactions = [
 ]
 
 class constants:
-    WIDTH, HEIGHT = 1000, 500
+    WIDTH, HEIGHT = 1024, 512
     BACKGROUND = (0,0,0)
     FPS = 30
     DISPLAY = pygame.display.set_mode((WIDTH,HEIGHT))
     CLOCK = pygame.time.Clock()
-    CELLSIZE = 5
+    CELLSIZE = 4
+    CHUNKSIZE = 64
 
 class Particle:
     def __init__(self,pos,particle_type):
@@ -124,3 +125,8 @@ class Particle:
         self.age = 0
         self.color = []
         #self.velocity
+
+class Chunk:
+    def __init__(self,pos):
+        self.bounds = pygame.Rect(pos[0],pos[1],constants.CHUNKSIZE,constants.CHUNKSIZE)
+        self.dirty_rect = None
