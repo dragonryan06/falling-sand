@@ -63,7 +63,7 @@ def main_loop() -> None:
     constants.DISPLAY.fill(constants.BACKGROUND)
     world.update()
     for c in world.chunks.values():
-        pygame.draw.rect(constants.DISPLAY,(255,255,255),(c.bounds.left,c.bounds.top,c.bounds.width*constants.CELLSIZE,c.bounds.height*constants.CELLSIZE),1)
+        pygame.draw.rect(constants.DISPLAY,(255,255,255),(c.bounds.left*constants.CELLSIZE,c.bounds.top*constants.CELLSIZE,c.bounds.width*constants.CELLSIZE,c.bounds.height*constants.CELLSIZE),1)
         if c.dirty_rect != None:
             pygame.draw.rect(constants.DISPLAY,(255,0,0),(c.dirty_rect.left*constants.CELLSIZE,c.dirty_rect.top*constants.CELLSIZE,c.dirty_rect.width*constants.CELLSIZE,c.dirty_rect.height*constants.CELLSIZE),1)
         for p in c.data.values():

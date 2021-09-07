@@ -128,14 +128,15 @@ class Particle:
 
 class Chunk:
     def __init__(self,pos:list) -> None:
-        self.bounds = pygame.Rect(pos[0]*constants.CELLSIZE*constants.CHUNKSIZE,pos[1]*constants.CELLSIZE*constants.CHUNKSIZE,constants.CHUNKSIZE,constants.CHUNKSIZE)
+        self.bounds = pygame.Rect(pos[0]*constants.CHUNKSIZE,pos[1]*constants.CHUNKSIZE,constants.CHUNKSIZE,constants.CHUNKSIZE)
+        print(self.bounds)
         self.data = {}
         self.dirty_rect = None
     
     def add_particle(self,pos:list,particle:Particle) -> None:
         self.data[str(pos)] = particle
         if particle_types[particle.type]['move_type'] != 'static':  
-            self.expand_dirty_rect(pos)         
+            self.expand_dirty_rect(pos)
 
     def remove_particle(self,pos:list) -> None:
         del self.data[str(pos)]
@@ -144,24 +145,42 @@ class Chunk:
     def expand_dirty_rect(self,pos:list) -> None:
         if self.dirty_rect == None:
             self.dirty_rect = pygame.Rect(pos[0]-1,pos[1]-1,3,3)
+            if self.dirty_rect.left < self.bounds.left:
+                self.dirty_rect.left = self.bounds.left
+            if self.dirty_rect.right > self.bounds.right:
+                self.dirty_rect.right = self.bounds.right
+            if self.dirty_rect.top < self.bounds.top:
+                self.dirty_rect.top = self.bounds.top
+            if self.dirty_rect.bottom > self.bounds.bottom:
+                self.dirty_rect.bottom = self.bounds.bottom
         else:
             left,right,top,bottom = self.dirty_rect.left,self.dirty_rect.right,self.dirty_rect.top,self.dirty_rect.bottom
             if pos[0] <= self.dirty_rect.left:
                 left = pos[0]-1
+                if left < self.bounds.left:
+                    left = self.bounds.left
             elif pos[0]+1 >= self.dirty_rect.right:
                 right = pos[0]+2
+                if right > self.bounds.right:
+                    right = self.bounds.right
             if pos[1] <= self.dirty_rect.top:
                 top = pos[1]-1
+                if top < self.bounds.top:
+                    top = self.bounds.top
             elif pos[1]+1 >= self.dirty_rect.bottom:
                 bottom = pos[1]+2
+                if bottom > self.bounds.bottom:
+                    bottom = self.bounds.bottom
             self.dirty_rect = pygame.Rect(left,top,right-left,bottom-top)
 
     def update(self) -> None:
         old_dirty_rect = self.dirty_rect.copy()
+        last_data = self.data.copy()
         self.dirty_rect = None
         for x in range(old_dirty_rect.left,old_dirty_rect.left+old_dirty_rect.width):
             for y in range(old_dirty_rect.top,old_dirty_rect.top+old_dirty_rect.height):
-                if str([x,y]) in self.data.keys():
+                if str([x,y]) in last_data.keys():
                     if particle_types[self.data[str([x,y])].type]['move_type'] != 'static':
-                        world.move_particle(self.data[str([x,y])],self)
-                        self.expand_dirty_rect([x,y])
+                        moved = world.move_particle(last_data[str([x,y])],self)
+                        if moved:
+                            self.expand_dirty_rect([x,y])

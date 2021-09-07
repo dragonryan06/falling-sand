@@ -34,8 +34,8 @@ def set_cell(particle:Particle,pos:list) -> None:
     chunk.add_particle(pos,particle)
     particle.pos = pos
 
-def clear_cell(particle:Particle,pos:list) -> None: # the particle and pos args are redundant, remove later
-    chunk = chunks[str([particle.pos[0]//constants.CHUNKSIZE,particle.pos[1]//constants.CHUNKSIZE])]
+def clear_cell(particle:Particle,pos:list) -> None:
+    chunk = chunks[str([pos[0]//constants.CHUNKSIZE,pos[1]//constants.CHUNKSIZE])]
     chunk.remove_particle(pos)
 
 def update() -> None:
@@ -104,7 +104,8 @@ def reaction_check(p:Particle,neighbors:dict) -> None:
                 else:
                     continue
 
-def move_particle(particle:Particle,chunk:Chunk): # i believe its possible particles could move twice if they were displaced by another particle falling and then they moved, this probably can be fixed with a "moved" bool property that says if the particle moved that frame already
+def move_particle(particle:Particle,chunk:Chunk) -> bool: # i believe its possible particles could move twice if they were displaced by another particle falling and then they moved, this probably can be fixed with a "moved" bool property that says if the particle moved that frame already
+    moved = False
     direction = randint(0,1)
     if direction == 0:
         direction = -1
@@ -122,63 +123,77 @@ def move_particle(particle:Particle,chunk:Chunk): # i believe its possible parti
     if not str(neighbors['down']) in chunk.data.keys() and particle_types[particle.type]['density'] > 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['down'])
+        moved = True
     elif str(neighbors['down']) in chunk.data.keys() and particle_types[chunk.data[str(neighbors['down'])].type]['density'] < particle_types[particle.type]['density']:
         clear_cell(particle,particle.pos)
         replacing_particle = chunk.data[str(neighbors['down'])]
         clear_cell(chunk.data[str(neighbors['down'])],neighbors['down'])
         set_cell(replacing_particle,particle.pos)
         set_cell(particle,neighbors['down'])
+        moved = True
 
     elif not str(neighbors['downdiagonal1']) in chunk.data.keys() and particle_types[particle.type]['density'] > 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['downdiagonal1'])
+        moved = True
     elif str(neighbors['downdiagonal1']) in chunk.data.keys() and particle_types[chunk.data[str(neighbors['downdiagonal1'])].type]['density'] < particle_types[particle.type]['density']:
         clear_cell(particle,particle.pos)
         replacing_particle = chunk.data[str(neighbors['downdiagonal1'])]
         clear_cell(chunk.data[str(neighbors['downdiagonal1'])],neighbors['downdiagonal1'])
         set_cell(replacing_particle,particle.pos)
         set_cell(particle,neighbors['downdiagonal1'])
+        moved = True
 
     elif not str(neighbors['downdiagonal2']) in chunk.data.keys() and particle_types[particle.type]['density'] > 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['downdiagonal2'])
+        moved = True
     elif str(neighbors['downdiagonal2']) in chunk.data.keys() and particle_types[chunk.data[str(neighbors['downdiagonal2'])].type]['density'] < particle_types[particle.type]['density']:
         clear_cell(particle,particle.pos)
         replacing_particle = chunk.data[str(neighbors['downdiagonal2'])]
         clear_cell(chunk.data[str(neighbors['downdiagonal2'])],neighbors['downdiagonal2'])
         set_cell(replacing_particle,particle.pos)
         set_cell(particle,neighbors['downdiagonal2'])
+        moved = True
 
     # there is no need for having things bubble up as the substance the are in will push them up
     elif not str(neighbors['up']) in chunk.data.keys() and particle_types[particle.type]['density'] < 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['up'])
+        moved = True
     
     elif not str(neighbors['updiagonal1']) in chunk.data.keys() and particle_types[particle.type]['density'] < 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['updiagonal1'])
+        moved = True
     
     elif not str(neighbors['updiagonal2']) in chunk.data.keys() and particle_types[particle.type]['density'] < 0:
         clear_cell(particle,particle.pos)
         set_cell(particle,neighbors['updiagonal2'])
+        moved = True
 
     elif particle_types[particle.type]['move_type'] == 'fluid':
         if not str(neighbors['side1']) in chunk.data.keys():
             clear_cell(particle,particle.pos)
             set_cell(particle,neighbors['side1'])
+            moved = True
         elif str(neighbors['side1']) in chunk.data.keys() and particle_types[chunk.data[str(neighbors['side1'])].type]['density'] < particle_types[particle.type]['density']:
             clear_cell(particle,particle.pos)
             replacing_particle = chunk.data[str(neighbors['side1'])]
             clear_cell(chunk.data[str(neighbors['side1'])],neighbors['side1'])
             set_cell(replacing_particle,particle.pos)
             set_cell(particle,neighbors['side1'])
+            moved = True
 
         elif not str(neighbors['side2']) in chunk.data.keys():
             clear_cell(particle,particle.pos)
             set_cell(particle,neighbors['side2'])
+            moved = True
         elif str(neighbors['side2']) in chunk.data.keys() and particle_types[chunk.data[str(neighbors['side2'])].type]['density'] < particle_types[particle.type]['density']:
             clear_cell(particle,particle.pos)
             replacing_particle = chunk.data[str(neighbors['side2'])]
             clear_cell(chunk.data[str(neighbors['side2'])],neighbors['side2'])
             set_cell(replacing_particle,particle.pos)
             set_cell(particle,neighbors['side2'])
+            moved = True
+    return moved
