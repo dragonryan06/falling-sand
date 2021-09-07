@@ -180,6 +180,6 @@ class Chunk:
             for y in range(old_dirty_rect.top,old_dirty_rect.top+old_dirty_rect.height):
                 if str([x,y]) in last_data.keys():
                     if particle_types[self.data[str([x,y])].type]['move_type'] != 'static':
-                        moved = world.move_particle(last_data[str([x,y])],self)
+                        moved = world.move_particle(last_data[str([x,y])])
                         if moved:
                             self.expand_dirty_rect([x,y])
