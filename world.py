@@ -30,7 +30,7 @@ def create_particle(particle:Particle) -> None:
         # TODO change this system to instead of assigning and saving a color, color things based on their x,y position with some sort of random map or something
 
 def set_cell(particle:Particle,pos:list) -> None:
-    chunk = chunks[str([particle.pos[0]//constants.CHUNKSIZE,particle.pos[1]//constants.CHUNKSIZE])]
+    chunk = chunks[str([pos[0]//constants.CHUNKSIZE,pos[1]//constants.CHUNKSIZE])]
     chunk.add_particle(pos,particle)
     particle.pos = pos
 

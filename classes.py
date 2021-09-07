@@ -129,7 +129,6 @@ class Particle:
 class Chunk:
     def __init__(self,pos:list) -> None:
         self.bounds = pygame.Rect(pos[0]*constants.CHUNKSIZE,pos[1]*constants.CHUNKSIZE,constants.CHUNKSIZE,constants.CHUNKSIZE)
-        print(self.bounds)
         self.data = {}
         self.dirty_rect = None
     
